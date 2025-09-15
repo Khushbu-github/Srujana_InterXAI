@@ -534,8 +534,8 @@ We welcome contributions to InterXAI! Please follow these guidelines:
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/NCJ-Hackademia/25-Mountain-Dew
-   cd 25-Mountain-Dew
+   git clone https://github.com/Khushbu-github/Srujana_InterXAI
+
    ```
 
 2. **Install Development Dependencies**

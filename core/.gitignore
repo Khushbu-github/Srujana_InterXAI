@@ -1,0 +1,7 @@
+
+# Ignore compiled files and SQLite DB
+*.pyc
+.env
+.venv
+__pycache__/
+

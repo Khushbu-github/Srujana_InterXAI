@@ -1,0 +1,19 @@
+[project]
+name = "interxai-v2"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.2.5",
+    "django-cors-headers>=4.7.0",
+    "djangorestframework>=3.16.1",
+    "groq>=0.29.0",
+    "gunicorn>=23.0.0",
+    "langchain>=0.3.26",
+    "langchain-community>=0.3.27",
+    "langchain-groq>=0.3.5",
+    "langgraph>=0.5.1",
+    "pypdf2>=3.0.1",
+    "whitenoise>=6.9.0",
+]

@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Session Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+        }
+
+        .config-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .config-section h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .response-section {
+            background: #f0fff4;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+            border-left: 4px solid #38a169;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .response-section.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .response-section.error {
+            background: #fef5e7;
+            border-left-color: #e53e3e;
+        }
+
+        .response-section h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .response-content {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .conversation-history {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .conversation-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .conversation-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .conversation-q {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .conversation-a {
+            color: #4a5568;
+            font-style: italic;
+        }
+
+        .feedback-section {
+            background: #fff5f5;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #f56565;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.4s ease;
+        }
+
+        .feedback-section.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feedback-title {
+            color: #2d3748;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .feedback-content {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .score-high {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .score-medium {
+            background: #fef5e7;
+            color: #744210;
+        }
+
+        .score-low {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .interview-status {
+            background: #edf2f7;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .interview-status.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .interview-status h4 {
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .interview-status p {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .followup-indicator {
+            background: #e6fffa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            border-left: 4px solid #38b2ac;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .followup-indicator.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .followup-indicator h5 {
+            color: #234e52;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .followup-indicator p {
+            color: #4a5568;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Interview Session Simulator</h1>
+            <p>Test your interview API endpoint with realistic scenarios</p>
+        </div>
+
+        <div class="config-section">
+            <h3>⚙️ Configuration</h3>
+            <div class="form-group">
+                <label for="endpoint">API Endpoint:</label>
+                <input type="text" id="endpoint" value="http://localhost:8000/api/interview/interview-session/7/">
+            </div>
+            <div class="form-group">
+                <label for="token">Authentication Token:</label>
+                <input type="text" id="token" placeholder="Enter your auth token here">
+            </div>
+            <div class="form-group">
+                <label for="answer">Current Answer:</label>
+                <textarea id="answer" placeholder="Enter the answer to the current question..."></textarea>
+            </div>
+        </div>
+
+        <div class="interview-status" id="interviewStatus">
+            <h4>📊 Interview Status</h4>
+            <p id="statusText">Ready to start interview</p>
+        </div>
+
+        <div class="followup-indicator" id="followupIndicator">
+            <h5>🔄 Follow-up Question</h5>
+            <p>This is a follow-up question to gather more details on your previous answer.</p>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="sendRequest()">📤 Send Request</button>
+            <button class="btn btn-secondary" onclick="clearResponse()">🗑️ Clear Response</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Processing your request...</p>
+        </div>
+
+        <div class="feedback-section" id="feedbackSection">
+            <div class="feedback-title">💡 Feedback & Score</div>
+            <div class="feedback-content" id="feedbackContent"></div>
+        </div>
+
+        <div class="response-section" id="responseSection">
+            <h3 id="responseTitle">📋 API Response</h3>
+            <div class="response-content" id="responseContent"></div>
+        </div>
+
+        <div class="conversation-history" id="conversationHistory" style="display: none;">
+            <h4>💬 Conversation History</h4>
+            <div id="conversationItems"></div>
+        </div>
+    </div>
+
+    <script>
+        let conversationHistory = [];
+        let currentQuestion = null;
+
+        async function sendRequest() {
+            const endpoint = document.getElementById('endpoint').value;
+            const token = document.getElementById('token').value;
+            const answer = document.getElementById('answer').value;
+            const loading = document.getElementById('loading');
+            const responseSection = document.getElementById('responseSection');
+            const responseContent = document.getElementById('responseContent');
+            const responseTitle = document.getElementById('responseTitle');
+            const feedbackSection = document.getElementById('feedbackSection');
+            const feedbackContent = document.getElementById('feedbackContent');
+            const interviewStatus = document.getElementById('interviewStatus');
+            const statusText = document.getElementById('statusText');
+            const followupIndicator = document.getElementById('followupIndicator');
+
+            if (!endpoint) {
+                alert('Please enter an API endpoint');
+                return;
+            }
+
+            if (!token) {
+                alert('Please enter an authentication token');
+                return;
+            }
+
+            // Show loading
+            loading.style.display = 'block';
+            responseSection.style.display = 'none';
+            responseSection.classList.remove('show');
+            feedbackSection.classList.remove('show');
+            followupIndicator.classList.remove('show');
+
+            try {
+                const url = new URL(endpoint);
+                if (answer) {
+                    url.searchParams.append('answer', answer);
+                }
+
+                const response = await fetch(url.toString(), {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Token ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                
+                console.log('API Response:', data); // Debug log
+
+                // Hide loading
+                loading.style.display = 'none';
+
+                // Update conversation history
+                if (answer && currentQuestion) {
+                    conversationHistory.push({
+                        question: currentQuestion,
+                        answer: answer
+                    });
+                    updateConversationHistory();
+                }
+
+                // Show response section first
+                responseSection.style.display = 'block';
+                responseSection.classList.remove('error');
+                
+                // Add show class for smooth animation
+                setTimeout(() => {
+                    responseSection.classList.add('show');
+                }, 50);
+                
+                if (response.ok) {
+                    responseTitle.innerHTML = `📋 API Response <span class="status-indicator status-success">Success ${response.status}</span>`;
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+
+                    // Show interview status
+                    setTimeout(() => {
+                        interviewStatus.classList.add('show');
+                    }, 100);
+                    
+                    // Handle different response types
+                    if (data.message && data.message.includes('completed')) {
+                        statusText.textContent = 'Interview completed successfully!';
+                        statusText.style.color = '#22543d';
+                        
+                        // Show final feedback if available
+                        if (data.feedback || data.final_score) {
+                            setTimeout(() => {
+                                feedbackSection.style.display = 'block';
+                                feedbackContent.innerHTML = `
+                                    <div>
+                                        <strong>Final Score:</strong> <span class="score-badge ${getScoreClass(data.final_score)}">${data.final_score || 'N/A'}</span>
+                                    </div>
+                                    <div style="margin-top: 10px;">
+                                        <strong>Feedback:</strong><br>
+                                        ${data.feedback || 'No feedback provided'}
+                                    </div>
+                                    ${data.overall_evaluation ? `
+                                    <div style="margin-top: 10px;">
+                                        <strong>Overall Evaluation:</strong><br>
+                                        ${data.overall_evaluation}
+                                    </div>` : ''}
+                                `;
+                                
+                                // Show feedback with proper animation
+                                setTimeout(() => {
+                                    feedbackSection.classList.add('show');
+                                }, 100);
+                            }, 300);
+                        }
+                    } else if (data.current_question) {
+                        currentQuestion = data.current_question;
+                        
+                        // Handle follow-up vs regular questions
+                        if (data.is_followup === true) {
+                            statusText.textContent = 'Follow-up question generated';
+                            statusText.style.color = '#38b2ac';
+                            
+                            // Show follow-up indicator
+                            setTimeout(() => {
+                                followupIndicator.style.display = 'block';
+                                setTimeout(() => {
+                                    followupIndicator.classList.add('show');
+                                }, 50);
+                            }, 300);
+                            
+                        } else {
+                            statusText.textContent = 'Next question loaded - Evaluation completed';
+                            statusText.style.color = '#22543d';
+                            
+                            // Show feedback and score for non-follow-up questions
+                            if (data.feedback || data.score) {
+                                setTimeout(() => {
+                                    feedbackSection.style.display = 'block';
+                                    feedbackContent.innerHTML = `
+                                        <div>
+                                            <strong>Score:</strong> <span class="score-badge ${getScoreClass(data.score)}">${data.score || 'N/A'}</span>
+                                        </div>
+                                        <div style="margin-top: 10px;">
+                                            <strong>Feedback:</strong><br>
+                                            ${data.feedback || 'No feedback provided'}
+                                        </div>
+                                    `;
+                                    
+                                    // Show feedback with proper animation timing
+                                    setTimeout(() => {
+                                        feedbackSection.classList.add('show');
+                                    }, 100);
+                                }, 300);
+                            }
+                        }
+                    } else {
+                        // Handle other response types
+                        statusText.textContent = 'Response received';
+                        statusText.style.color = '#4a5568';
+                    }
+                } else {
+                    responseSection.classList.add('error');
+                    responseTitle.innerHTML = `📋 API Response <span class="status-indicator status-error">Error ${response.status}</span>`;
+                    responseContent.textContent = JSON.stringify(data, null, 2);
+                    
+                    setTimeout(() => {
+                        interviewStatus.classList.add('show');
+                        statusText.textContent = 'Error occurred during request';
+                        statusText.style.color = '#742a2a';
+                    }, 100);
+                }
+
+                // Clear the answer field for next question
+                setTimeout(() => {
+                    document.getElementById('answer').value = '';
+                    document.getElementById('answer').focus();
+                }, 500);
+
+            } catch (error) {
+                // Hide loading
+                loading.style.display = 'none';
+
+                // Show error
+                responseSection.style.display = 'block';
+                responseSection.classList.add('error');
+                responseTitle.innerHTML = `📋 API Response <span class="status-indicator status-error">Network Error</span>`;
+                responseContent.textContent = `Error: ${error.message}`;
+                
+                setTimeout(() => {
+                    responseSection.classList.add('show');
+                    interviewStatus.classList.add('show');
+                    statusText.textContent = 'Network error occurred';
+                    statusText.style.color = '#742a2a';
+                }, 50);
+            }
+        }
+
+        function getScoreClass(score) {
+            if (!score) return 'score-low';
+            const numScore = parseFloat(score);
+            if (numScore >= 8) return 'score-high';
+            if (numScore >= 6) return 'score-medium';
+            return 'score-low';
+        }
+
+        function updateConversationHistory() {
+            const historyDiv = document.getElementById('conversationHistory');
+            const itemsDiv = document.getElementById('conversationItems');
+            
+            if (conversationHistory.length === 0) {
+                historyDiv.style.display = 'none';
+                return;
+            }
+
+            historyDiv.style.display = 'block';
+            itemsDiv.innerHTML = '';
+
+            conversationHistory.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'conversation-item';
+                itemDiv.innerHTML = `
+                    <div class="conversation-q">Q${index + 1}: ${item.question}</div>
+                    <div class="conversation-a">A${index + 1}: ${item.answer}</div>
+                `;
+                itemsDiv.appendChild(itemDiv);
+            });
+        }
+
+        function clearResponse() {
+            const responseSection = document.getElementById('responseSection');
+            const feedbackSection = document.getElementById('feedbackSection');
+            const interviewStatus = document.getElementById('interviewStatus');
+            const conversationHistory = document.getElementById('conversationHistory');
+            const followupIndicator = document.getElementById('followupIndicator');
+            
+            // Remove show classes for smooth animation
+            responseSection.classList.remove('show');
+            feedbackSection.classList.remove('show');
+            interviewStatus.classList.remove('show');
+            followupIndicator.classList.remove('show');
+            
+            // Hide elements after animation
+            setTimeout(() => {
+                responseSection.style.display = 'none';
+                feedbackSection.style.display = 'none';
+                interviewStatus.style.display = 'none';
+                followupIndicator.style.display = 'none';
+                conversationHistory.style.display = 'none';
+            }, 400);
+            
+            document.getElementById('answer').value = '';
+            conversationHistory = [];
+            currentQuestion = null;
+        }
+
+        // Handle Enter key in textarea
+        document.getElementById('answer').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                sendRequest();
+            }
+        });
+
+        // Auto-focus on answer field
+        document.getElementById('answer').focus();
+    </script>
+</body>
+</html>
